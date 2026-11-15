@@ -144,7 +144,148 @@ export const SAMPLES: SampleItem[] = [
       "license": "CC BY-SA 2.0",
       "source": "https://commons.wikimedia.org/wiki/File:Lego_Space_-_Set_6842_Shuttle_Craft_(7539329454).jpg"
     }
+  },
+  {
+    "slug": "ipod-classic",
+    "image": "/samples/ipod-classic.jpg",
+    "title": "iPod classic 80GB, silver",
+    "category": "Electronics",
+    "condition": "good",
+    "price": 75,
+    "description": "6th-gen iPod classic, 80GB. Battery holds a charge for a full day, click wheel works perfectly, a few light scratches on the back.",
+    "credit": {
+      "author": "Raimond Spekking",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:IPod_classic_80_GB_(A1238,_YMV)-9876.jpg"
+    }
+  },
+  {
+    "slug": "walkman",
+    "image": "/samples/walkman.jpg",
+    "title": "Original 1979 Sony Walkman TPS-L2",
+    "category": "Electronics",
+    "condition": "good",
+    "price": 160,
+    "description": "The original blue-and-silver Sony Walkman TPS-L2 from 1979. Plays tapes, both headphone jacks work, belt replaced last year.",
+    "credit": {
+      "author": "Anna Gerdén",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Walkman_TPS-L2.jpg"
+    }
+  },
+  {
+    "slug": "rubiks-cube",
+    "image": "/samples/rubiks-cube.jpg",
+    "title": "Classic Rubik's Cube 3x3",
+    "category": "Collectibles",
+    "condition": "like new",
+    "price": 12,
+    "description": "Classic 3x3 Rubik's Cube, turns smoothly, stickers in great shape. Solved and ready to scramble.",
+    "credit": {
+      "author": "Lars Karlsson (Keqs)",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Rubiks_cube_by_keqs.jpg"
+    }
+  },
+  {
+    "slug": "typewriter",
+    "image": "/samples/typewriter.jpg",
+    "title": "Olympia Splendid 33 typewriter (1961)",
+    "category": "Home",
+    "condition": "good",
+    "price": 95,
+    "description": "1961 Olympia Splendid 33 portable typewriter. All keys strike, carriage returns smoothly, new ribbon installed. Comes with case.",
+    "credit": {
+      "author": "Al*from*Lig",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Olympia_%22Splendid_33%22_-_1961.jpg"
+    }
+  },
+  {
+    "slug": "leica-m3",
+    "image": "/samples/leica-m3.jpg",
+    "title": "Leica M3 rangefinder camera",
+    "category": "Electronics",
+    "condition": "good",
+    "price": 1200,
+    "description": "Leica M3 35mm rangefinder body. Bright viewfinder, shutter accurate at all speeds, light brassing on the edges. Body only.",
+    "credit": {
+      "author": "Rama",
+      "license": "CC BY-SA 2.0 fr",
+      "source": "https://commons.wikimedia.org/wiki/File:Leica_M3_mg_3628.jpg"
+    }
+  },
+  {
+    "slug": "yamaha-guitar",
+    "image": "/samples/yamaha-guitar.jpg",
+    "title": "Yamaha FG-331 acoustic guitar",
+    "category": "Collectibles",
+    "condition": "good",
+    "price": 140,
+    "description": "Yamaha FG-331 dreadnought acoustic. Warm tone, straight neck, comfortable action. Some pick wear below the sound hole.",
+    "credit": {
+      "author": "Veradrive",
+      "license": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Yamaha_Acoustic_Guitar_FG-331v2.jpg"
+    }
+  },
+  {
+    "slug": "n64",
+    "image": "/samples/n64.jpg",
+    "title": "Nintendo 64 console",
+    "category": "Gaming",
+    "condition": "good",
+    "price": 90,
+    "description": "Nintendo 64 console with expansion pak. Tested and working, video output is clean. Light yellowing on the shell.",
+    "credit": {
+      "author": "Larry D. Moore",
+      "license": "CC BY 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Nintendo_64.jpg"
+    }
+  },
+  {
+    "slug": "rayban",
+    "image": "/samples/rayban.jpg",
+    "title": "Ray-Ban sunglasses",
+    "category": "Fashion",
+    "condition": "like new",
+    "price": 70,
+    "description": "Ray-Ban sunglasses, black frame. Lenses scratch-free, hinges tight. Comes with the case.",
+    "credit": {
+      "author": "Jacek Halicki",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:2023_Okulary_przeciws%C5%82oneczne_Ray-Ban_(1).jpg"
+    }
+  },
+  {
+    "slug": "casio-f91w",
+    "image": "/samples/casio-f91w.jpg",
+    "title": "Casio F-91W digital watch",
+    "category": "Fashion",
+    "condition": "new",
+    "price": 15,
+    "description": "Classic Casio F-91W digital watch. New, with alarm, stopwatch and backlight. Battery included.",
+    "credit": {
+      "author": "Multicherry",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Casio_F-91W_watch_(2023)_(front_closeup_-_time)_(minor_retouch).jpg"
+    }
+  },
+  {
+    "slug": "skateboard",
+    "image": "/samples/skateboard.jpg",
+    "title": "Vintage 60s Nash wooden skateboard",
+    "category": "Collectibles",
+    "condition": "fair",
+    "price": 55,
+    "description": "Vintage 1960s Nash Shark wooden deck skateboard with original metal wheels. Display piece; deck has age wear.",
+    "credit": {
+      "author": "H. Michael Karshis",
+      "license": "CC BY 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Nash_Vintage_60%27s_Wooden_Deck_Shark_Skateboard.jpg"
+    }
   }
+
 ];
 
 export const creditLine = (s: SampleItem) => `Photo: ${s.credit.author}, ${s.credit.license}, via Wikimedia Commons`;

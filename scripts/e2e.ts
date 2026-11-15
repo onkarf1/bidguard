@@ -279,6 +279,8 @@ async function main() {
     const final = (await api(`/api/auctions/${auction}`)).j;
     check(final.escrow.status === "released" && final.seller.sales === 1, "escrow released; seller reputation +1 sale");
   }
+  // Keep automated test auctions out of the public lists.
+  await fetch(`${APP}/api/admin/auctions/${auction}/hide`, { method: "POST", headers: { "Content-Type": "application/json", "x-admin-token": env.ADMIN_TOKEN }, body: "{}" });
   log("\nAll end-to-end checks passed.", `${APP}/auction/${auction}`);
 }
 
