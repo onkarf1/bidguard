@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ShieldAlert } from "lucide-react";
 import { TrustBadge } from "@/components/TrustBadge";
 import { PhotoCheck, type AiImage } from "@/components/PhotoCheck";
+import { ArbiterQueue } from "@/components/ArbiterQueue";
 import { short, usd } from "@/lib/format";
 
 type Listing = { _id: string; seller: string; title: string; description: string; startPrice: number; images: string[]; status: string; trust?: { score: number; decision: string; reasons: string[]; agents?: { aiImage?: AiImage | null } }; moderation?: { action: string } };
@@ -47,7 +48,7 @@ export default function Admin() {
         <ShieldAlert className="h-7 w-7 text-brand" aria-hidden />
         <div>
           <h1 className="text-2xl font-bold">Moderation</h1>
-          <p className="text-sm text-slate-400">The agents hold borderline listings. A person makes the final call.</p>
+          <p className="text-sm text-slate-400">The agents hold borderline listings and recommend dispute rulings. A person makes the final call.</p>
         </div>
       </div>
       {!data && (
@@ -59,6 +60,7 @@ export default function Admin() {
       {error && <p role="alert" className="text-rose-300">{error}</p>}
       {data && (
         <>
+          <ArbiterQueue token={token} />
           <h2 className="text-lg font-semibold">Held for review ({data.held.length})</h2>
           {data.held.length === 0 && <p className="text-slate-400">Nothing waiting.</p>}
           <div className="space-y-3">

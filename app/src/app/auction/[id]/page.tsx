@@ -7,6 +7,7 @@ import { Bot, ExternalLink, Gavel, Loader2, Timer } from "lucide-react";
 import { Countdown } from "@/components/Countdown";
 import { TrustBadge } from "@/components/TrustBadge";
 import { PhotoCheck, type AiImage } from "@/components/PhotoCheck";
+import { DisputePanel } from "@/components/DisputePanel";
 import { friendlyError, useBidguard } from "@/lib/useBidguard";
 import { BID_VALIDITY_SECS, MAX_NOTE_LEN, MAX_TRACKING_LEN, explorerAddress, explorerTx } from "@/lib/config";
 import { fromBaseUnits, short, toBaseUnits, usd } from "@/lib/format";
@@ -251,8 +252,6 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
             <h2 className="font-semibold">Escrow</h2>
             <p className="text-sm"><span className="text-slate-400">Status:</span> {ESCROW_LABEL[esc.status] ?? esc.status}</p>
             <p className="text-sm text-slate-400">{usd(esc.price)} held · seller bond {usd(esc.bond)}{esc.tracking && ` · tracking ${esc.tracking}`}</p>
-            {esc.disputeReason && <p className="text-sm text-slate-300">Dispute: “{esc.disputeReason}”</p>}
-            {esc.resolutionNote && <p className="text-sm text-slate-300">Resolution: {esc.resolutionNote}</p>}
 
             {isSeller && esc.status === "funded" && (
               <div className="flex gap-2">
@@ -278,6 +277,8 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
             )}
           </div>
         )}
+
+        {esc && (esc.status === "disputed" || esc.status === "resolved") && <DisputePanel auction={a._id} onChange={load} />}
 
         <div className="card space-y-2">
           <h2 className="font-semibold">Activity</h2>
