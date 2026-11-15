@@ -7,12 +7,13 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { AgentTrace, type TraceEvent } from "@/components/AgentTrace";
 import { TrustBadge } from "@/components/TrustBadge";
+import { PhotoCheck, type AiImage } from "@/components/PhotoCheck";
 import { prepareImage, type PreparedImage } from "@/lib/images";
 import { friendlyError, useBidguard } from "@/lib/useBidguard";
 import { MAX_DESCRIPTION_LEN, MAX_TITLE_LEN, explorerTx } from "@/lib/config";
 import { usd } from "@/lib/format";
 
-type Trust = { score: number; decision: string; reasons: string[] };
+type Trust = { score: number; decision: string; reasons: string[]; agents?: { aiImage?: AiImage | null } };
 type Result = { listing: { _id: string; status: string; trust: Trust } };
 
 const DURATIONS = [
@@ -70,7 +71,7 @@ export default function Sell() {
           condition: form.condition,
           startPrice: Number(form.startPrice),
           durationMinutes: form.duration,
-          images: images.map(({ dataUrl, dhash, exif }) => ({ dataUrl, dhash, exif })),
+          images: images.map(({ dataUrl, dhash, exif, aiMarkers, width, height }) => ({ dataUrl, dhash, exif, aiMarkers, width, height })),
         }),
       });
       if (!res.ok || !res.body) throw new Error((await res.json().catch(() => ({}))).error ?? "Couldn't submit the listing");
@@ -150,7 +151,7 @@ export default function Sell() {
           <span className="label">Photos (1–4)</span>
           <div className="flex flex-wrap gap-3">
             {images.map((img, i) => (
-              <div key={i} className="relative h-24 w-24 overflow-hidden rounded-lg border border-slate-700">
+              <div key={i} className={`relative h-24 w-24 overflow-hidden rounded-lg border ${img.aiMarkers.length ? "border-rose-500" : "border-slate-700"}`} title={img.aiMarkers.join(", ")}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img.dataUrl} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
                 <button type="button" onClick={() => setImages((c) => c.filter((_, j) => j !== i))} className="absolute right-1 top-1 rounded-full bg-slate-950/80 p-1" aria-label={`Remove photo ${i + 1}`}>
@@ -166,6 +167,11 @@ export default function Sell() {
               </label>
             )}
           </div>
+          {images.some((i) => i.aiMarkers.length) && (
+            <p role="alert" className="mt-2 rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5 text-sm text-rose-200">
+              A photo&apos;s file says it was made by an AI image tool ({Array.from(new Set(images.flatMap((i) => i.aiMarkers))).join("; ")}). Listings need real photos of the item you have, so this one will be held for review.
+            </p>
+          )}
         </div>
 
         <div>
@@ -212,7 +218,7 @@ export default function Sell() {
       <aside className="space-y-4">
         <div className="card space-y-3">
           <h2 className="font-semibold">Agent crew</h2>
-          {trace.length === 0 ? <p className="text-sm text-slate-400">Listing Inspector, Price Sanity and Seller Risk run in parallel when you submit.</p> : <AgentTrace events={trace} />}
+          {trace.length === 0 ? <p className="text-sm text-slate-400">Listing Inspector, AI Image Detector, Price Sanity and Seller Risk run in parallel when you submit.</p> : <AgentTrace events={trace} />}
         </div>
         {result && decision && (
           <div className="card space-y-4">
@@ -227,6 +233,7 @@ export default function Sell() {
             <ul className="list-disc space-y-1 ps-5 text-sm text-slate-300">
               {result.listing.trust.reasons.map((r) => <li key={r}>{r}</li>)}
             </ul>
+            {result.listing.trust.agents?.aiImage && <PhotoCheck r={result.listing.trust.agents.aiImage} />}
             {result.listing.status === "awaiting_signature" ? (
               <button onClick={goLive} disabled={!!busy} className="btn-primary w-full">
                 {busy === "signing" ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Confirm in your wallet…</> : "Post bond & go live"}

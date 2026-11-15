@@ -1,8 +1,9 @@
 "use client";
 import exifr from "exifr";
 import type { ExifSummary } from "./agents-types";
+import { scanProvenance } from "./provenance";
 
-export type PreparedImage = { dataUrl: string; dhash: string; exif: ExifSummary | null; name: string };
+export type PreparedImage = { dataUrl: string; dhash: string; exif: ExifSummary | null; name: string; aiMarkers: string[]; width: number; height: number };
 
 const loadImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
@@ -44,6 +45,8 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
   } catch {
     /* no metadata */
   }
+  // Provenance lives in the original file; re-encoding below would strip it.
+  const aiMarkers = scanProvenance(new Uint8Array(await file.arrayBuffer()));
   const url = URL.createObjectURL(file);
   try {
     const img = await loadImage(url);
@@ -52,7 +55,7 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
     c.width = Math.round(img.width * scale);
     c.height = Math.round(img.height * scale);
     c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
-    return { dataUrl: c.toDataURL("image/jpeg", 0.82), dhash: dhash(img), exif, name: file.name };
+    return { dataUrl: c.toDataURL("image/jpeg", 0.82), dhash: dhash(img), exif, name: file.name, aiMarkers, width: img.naturalWidth, height: img.naturalHeight };
   } finally {
     URL.revokeObjectURL(url);
   }

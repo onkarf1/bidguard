@@ -6,6 +6,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Bot, ExternalLink, Gavel, Loader2, Timer } from "lucide-react";
 import { Countdown } from "@/components/Countdown";
 import { TrustBadge } from "@/components/TrustBadge";
+import { PhotoCheck, type AiImage } from "@/components/PhotoCheck";
 import { friendlyError, useBidguard } from "@/lib/useBidguard";
 import { BID_VALIDITY_SECS, MAX_NOTE_LEN, MAX_TRACKING_LEN, explorerAddress, explorerTx } from "@/lib/config";
 import { fromBaseUnits, short, toBaseUnits, usd } from "@/lib/format";
@@ -13,7 +14,7 @@ import { finalizeIxs, markShippedIx, raiseDisputeIx } from "@/lib/program";
 
 type Room = {
   auction: { _id: string; seller: string; title: string; trustScore: number; startPrice: number; minNext: number; endsAt: string; currentBid: number | null; currentBidder: string | null; bidCount: number; extensions: number; status: string; settleTx?: string };
-  listing: { title: string; description: string; category: string; condition: string; images: string[]; trust?: { score: number; decision: string; reasons: string[]; agents?: { price?: { expected_low_usd: number; expected_high_usd: number } } } } | null;
+  listing: { title: string; description: string; category: string; condition: string; images: string[]; trust?: { score: number; decision: string; reasons: string[]; agents?: { price?: { expected_low_usd: number; expected_high_usd: number }; aiImage?: AiImage | null } } } | null;
   bids: { _id: string; bidder: string; amount: number; at: string; signer: string }[];
   escrow: { status: string; buyer: string; price: number; bond: number; tracking: string; settledAt: number; shippedAt: number; deliveredAt: number; disputeReason: string; resolutionNote: string; buyerBps: number } | null;
   seller: { sales: number; disputesLost: number; failedShipments: number; auctions: number } | null;
@@ -189,6 +190,7 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
               </div>
             </div>
             <ul className="list-disc space-y-1 ps-5 text-sm text-slate-300">{L.trust.reasons.map((r) => <li key={r}>{r}</li>)}</ul>
+            {L.trust.agents?.aiImage && <PhotoCheck r={L.trust.agents.aiImage} />}
             {fair && fair.expected_high_usd > 0 && <p className="text-sm text-slate-400">Estimated fair value: ${fair.expected_low_usd}–${fair.expected_high_usd}</p>}
             <p className="text-sm text-slate-400">
               Seller <a className="text-brand underline" href={explorerAddress(a.seller)} target="_blank" rel="noreferrer">{short(a.seller)}</a>

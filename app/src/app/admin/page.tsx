@@ -2,9 +2,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { ShieldAlert } from "lucide-react";
 import { TrustBadge } from "@/components/TrustBadge";
+import { PhotoCheck, type AiImage } from "@/components/PhotoCheck";
 import { short, usd } from "@/lib/format";
 
-type Listing = { _id: string; seller: string; title: string; description: string; startPrice: number; images: string[]; status: string; trust?: { score: number; decision: string; reasons: string[] }; moderation?: { action: string } };
+type Listing = { _id: string; seller: string; title: string; description: string; startPrice: number; images: string[]; status: string; trust?: { score: number; decision: string; reasons: string[]; agents?: { aiImage?: AiImage | null } }; moderation?: { action: string } };
 
 /** Moderator queue: agents advise, a person decides on everything they held. */
 export default function Admin() {
@@ -73,6 +74,7 @@ export default function Admin() {
                   <p className="text-sm text-slate-400">{usd(l.startPrice)} start · seller {short(l.seller)}</p>
                   <p className="line-clamp-2 text-sm text-slate-300">{l.description}</p>
                   <ul className="list-disc ps-5 text-sm text-amber-200">{l.trust?.reasons.map((r) => <li key={r}>{r}</li>)}</ul>
+                  {l.trust?.agents?.aiImage && <PhotoCheck r={l.trust.agents.aiImage} />}
                 </div>
                 <div className="flex shrink-0 gap-2 sm:flex-col">
                   <button className="btn-primary" onClick={() => decide(l._id, "approve")}>Approve</button>

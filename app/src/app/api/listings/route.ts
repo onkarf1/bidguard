@@ -14,6 +14,9 @@ const B58 = z.string().min(32).max(50).regex(/^[1-9A-HJ-NP-Za-km-z]+$/);
 const Image = z.object({
   dataUrl: z.string().regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/).max(2_200_000),
   dhash: z.string().regex(/^[0-9a-f]{16}$/),
+  aiMarkers: z.array(z.string().max(80)).max(8).default([]),
+  width: z.number().int().min(1).max(20000).optional(),
+  height: z.number().int().min(1).max(20000).optional(),
   exif: z.object({ make: z.string().max(60).optional(), model: z.string().max(60).optional(), taken: z.string().max(40).optional(), software: z.string().max(80).optional(), hasGps: z.boolean().optional() }).nullable(),
 });
 const Body = z.object({
@@ -52,7 +55,7 @@ export async function POST(req: Request) {
   for (const img of images) {
     const [, mime, b64] = img.dataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/)!;
     const id = randomUUID();
-    await d.collection("images").insertOne({ _id: id as never, listingId, seller: body.seller, mime, data: new Binary(Buffer.from(b64, "base64")), sha256: img.sha256, dhash: img.dhash, exif: img.exif, createdAt: new Date() });
+    await d.collection("images").insertOne({ _id: id as never, listingId, seller: body.seller, mime, data: new Binary(Buffer.from(b64, "base64")), sha256: img.sha256, dhash: img.dhash, exif: img.exif, aiMarkers: img.aiMarkers, createdAt: new Date() });
     imageIds.push(id);
   }
   const startPrice = toBaseUnits(body.startPrice);

@@ -3,7 +3,7 @@ import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
 export type TraceEvent = { agent: string; status: "running" | "done" | "failed"; ms?: number; summary?: string };
 
-const ORDER = ["orchestrator", "Listing Inspector", "Price Sanity", "Seller Risk"];
+const ORDER = ["orchestrator", "Listing Inspector", "AI Image Detector", "Price Sanity", "Seller Risk"];
 
 /** Live view of the agent crew: each agent's status, latency and one-line finding. */
 export function AgentTrace({ events }: { events: TraceEvent[] }) {

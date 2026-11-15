@@ -52,7 +52,9 @@ async function api(p: string, body?: unknown) {
 /** A 256×192 PNG of a yellow circle on a blue card, plus its 64-bit dHash. */
 function testImage() {
   const W = 256, H = 192;
-  const px = (x: number, y: number) => ((x - 128) ** 2 + (y - 96) ** 2 < 60 ** 2 ? [250, 204, 21] : [37, 99, 235 - Math.floor(y / 2)]);
+  // Random circle position per run, so the duplicate-photo check doesn't match earlier runs.
+  const cx = 70 + Math.floor(Math.random() * 116), cy = 50 + Math.floor(Math.random() * 92), r = 30 + Math.floor(Math.random() * 25);
+  const px = (x: number, y: number) => ((x - cx) ** 2 + (y - cy) ** 2 < r ** 2 ? [250, 204, 21] : [37, 99, 235 - Math.floor(y / 2)]);
   const raw = Buffer.alloc((W * 3 + 1) * H);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) px(x, y).forEach((v, i) => (raw[y * (W * 3 + 1) + 1 + x * 3 + i] = v));
   const crc = (b: Buffer) => {
@@ -134,10 +136,10 @@ async function main() {
   log(`   Trust ${result.listing.trust.score} → ${result.listing.trust.decision}:`, result.listing.trust.reasons.join(" | "));
   const listingId = result.listing._id as string;
   check(!(await api(`/api/listings/${listingId}/tx`, { seller: alice.publicKey.toBase58() })).ok, "only the listing's seller can get its transaction");
-  if (result.listing.status === "held") {
+  if (result.listing.status === "held" || result.listing.status === "rejected") {
     check((await fetch(`${APP}/api/admin/listings/${listingId}`, { method: "POST", headers: { "Content-Type": "application/json", "x-admin-token": "wrong-token-wrong-token" }, body: '{"action":"approve"}' })).status === 401, "moderator endpoint rejects a bad token");
     const mod = await fetch(`${APP}/api/admin/listings/${listingId}`, { method: "POST", headers: { "Content-Type": "application/json", "x-admin-token": env.ADMIN_TOKEN }, body: '{"action":"approve"}' });
-    check(mod.ok, "held listing approved by a human moderator");
+    check(mod.ok, `${result.listing.status} listing approved by a human moderator`);
   }
   const built = await api(`/api/listings/${listingId}/tx`, { seller: seller.publicKey.toBase58() });
   check(built.ok, "operator co-signed create_auction tx issued to the seller");
