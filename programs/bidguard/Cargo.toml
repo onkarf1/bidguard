@@ -1,13 +1,13 @@
 [package]
-name = "trustlink"
+name = "bidguard"
 version = "0.1.0"
-description = "TrustLink: USDC escrow with AI-assisted dispute resolution"
+description = "BidGuard: deposit-backed live auctions with escrow and AI-vetted listings"
 edition = "2021"
 rust-version = "1.79"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "trustlink"
+name = "bidguard"
 
 [features]
 default = []

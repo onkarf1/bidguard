@@ -7,10 +7,10 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-trustlink = "3xYeBR8Cb1Eh8Fwb4U36ceUGE9V1MfjtzSc2z6JJv1Bg"
+bidguard = "6upAUdnE4srVXtYEw1AMhxBxmoZLZ45sJq9dMgRwcp8"
 
 [programs.localnet]
-trustlink = "3xYeBR8Cb1Eh8Fwb4U36ceUGE9V1MfjtzSc2z6JJv1Bg"
+bidguard = "6upAUdnE4srVXtYEw1AMhxBxmoZLZ45sJq9dMgRwcp8"
 
 [registry]
 url = "https://api.apr.dev"
