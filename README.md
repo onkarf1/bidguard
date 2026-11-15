@@ -74,10 +74,14 @@ Program ID (devnet): `6upAUdnE4srVXtYEw1AMhxBxmoZLZ45sJq9dMgRwcp8`
 | `/sell` | Create a listing, watch the agents work, post the bond and go live |
 | `/auction/[id]` | Live room: countdown, signed bidding, live activity, trust report, escrow actions |
 | `/vault` | Deposit, see available bidding power, request and complete withdrawals |
-| `/admin` | Moderator queue for held listings (token-protected) |
+| `/admin` | Moderator queue for held listings and the dispute arbiter queue (token-protected) |
 | `src/lib/agents.ts` | The agent crew and Trust Score |
 | `src/lib/auctions.ts` | Auction engine: signature checks, bidding power, atomic bids, soft close, settlement |
 | `src/lib/provenance.ts` | AI-image provenance scanner (runs in the browser on the original file) |
+
+**Guardy**, the chrome shield mascot, is the in-app assistant (bottom right on every page). It knows the platform rules, the live auctions and, on an auction page, that listing's Trust Score and reasons. It can't move money and never asks for keys.
+
+The UI is black and white with a **dark / light theme** switch (remembered per visitor; first visit follows the OS), and an animated layer (framer-motion) that respects "reduce motion".
 
 **Stack:** Solana + Anchor 0.31, Next.js 14, MongoDB Atlas (live state), Server-Sent Events, Gemini (agents), Vercel.
 
@@ -118,6 +122,8 @@ Then add `MONGODB_URI`, `GEMINI_API_KEY` and `ADMIN_TOKEN` to `app/.env.local` (
 ```bash
 cd app && npm run dev                         # http://localhost:3000
 ```
+
+**Demo data:** `yarn seed` lists real items (freely licensed photos in `app/public/samples`, credits in `CREDITS.md`) through the full pipeline and places opening bids from demo bidders. On `/sell`, **Try a sample item** fills in one of these items.
 
 **End-to-end test** (with the app running): `yarn e2e` creates fresh wallets and goes through listing → agent vetting → moderator → on-chain auction → deposits → bid rules → soft close → settlement → shipping → carrier delivery → payout.
 

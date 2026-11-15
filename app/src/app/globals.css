@@ -1,4 +1,32 @@
 @tailwind base;
+
+/* ── theme tokens: dark (default) ── */
+:root {
+  color-scheme: dark;
+  --g-50: 250 250 250; --g-100: 245 245 245; --g-200: 229 229 229; --g-300: 212 212 212; --g-400: 163 163 163;
+  --g-500: 115 115 115; --g-600: 82 82 82; --g-700: 64 64 64; --g-800: 38 38 38; --g-900: 23 23 23; --g-950: 8 8 8;
+  --brand: 255 255 255;
+  --emerald-200: 167 243 208; --emerald-300: 110 231 183;
+  --rose-200: 254 205 211; --rose-300: 253 164 175;
+  --amber-200: 253 230 138; --amber-300: 252 211 77;
+  --sky-200: 186 230 253; --sky-300: 125 211 252;
+  --ring-track: 38 38 38;
+  --glow: 255 255 255;
+}
+/* ── light: the gray scale inverts, brand becomes black ── */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --g-50: 10 10 10; --g-100: 23 23 23; --g-200: 38 38 38; --g-300: 64 64 64; --g-400: 82 82 82;
+  --g-500: 115 115 115; --g-600: 163 163 163; --g-700: 212 212 212; --g-800: 229 229 229; --g-900: 245 245 245; --g-950: 255 255 255;
+  --brand: 10 10 10;
+  --emerald-200: 6 95 70; --emerald-300: 4 120 87;
+  --rose-200: 159 18 57; --rose-300: 190 18 60;
+  --amber-200: 146 64 14; --amber-300: 180 83 9;
+  --sky-200: 7 89 133; --sky-300: 3 105 161;
+  --ring-track: 229 229 229;
+  --glow: 0 0 0;
+}
+html { transition: background-color .3s ease, color .3s ease; }
 @tailwind components;
 @tailwind utilities;
 
@@ -16,7 +44,7 @@
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-brand text-slate-950 hover:bg-amber-300;
+    @apply btn bg-brand text-slate-950 hover:opacity-85;
   }
   .btn-secondary {
     @apply btn border border-slate-700 text-slate-200 hover:border-slate-500 hover:bg-slate-800;
@@ -27,14 +55,32 @@
 }
 
 .wallet-adapter-button-trigger {
-  background-color: #fbbf24 !important;
-  color: #020617 !important;
+  background-color: rgb(var(--brand)) !important;
+  color: rgb(var(--g-950)) !important;
   height: 40px !important;
   border-radius: 0.5rem !important;
   font-size: 0.875rem !important;
 }
 
-.trust-ring { background: conic-gradient(var(--c) calc(var(--v) * 1%), rgb(30 41 59) 0); }
-@keyframes flash { 0% { background-color: rgb(251 191 36 / .35); } 100% { background-color: transparent; } }
+.trust-ring { background: conic-gradient(var(--c) calc(var(--v) * 1%), rgb(var(--ring-track)) 0); }
+@keyframes flash { 0% { background-color: rgb(var(--glow) / .18); } 100% { background-color: transparent; } }
 .flash { animation: flash 1.2s ease-out; }
 @media (prefers-reduced-motion: reduce) { .flash { animation: none; } }
+
+/* ── motion layer ── */
+@keyframes aurora { 0% { transform: translate(0, 0) scale(1); } 33% { transform: translate(8%, -6%) scale(1.15); } 66% { transform: translate(-6%, 6%) scale(0.95); } 100% { transform: translate(0, 0) scale(1); } }
+.aurora { position: absolute; border-radius: 9999px; filter: blur(80px); opacity: .14; background: rgb(var(--glow)); animation: aurora 18s ease-in-out infinite; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee { animation: marquee 40s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+@keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+.shimmer-text { background: linear-gradient(90deg, rgb(var(--g-50)) 20%, rgb(var(--g-500)) 40%, rgb(var(--g-50)) 60%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 5s linear infinite; }
+@keyframes ping-soft { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(2.4); opacity: 0; } }
+.live-dot { position: relative; display: inline-block; width: .5rem; height: .5rem; border-radius: 9999px; background: #f43f5e; }
+.live-dot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: inherit; animation: ping-soft 1.4s ease-out infinite; }
+.grid-bg { background-image: linear-gradient(rgb(var(--glow) / .05) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--glow) / .05) 1px, transparent 1px); background-size: 44px 44px; mask-image: radial-gradient(ellipse at top, black 30%, transparent 75%); }
+@keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+.shake { animation: shake .45s ease-in-out; }
+@media (prefers-reduced-motion: reduce) {
+  .aurora, .marquee, .shimmer-text, .live-dot::after, .shake { animation: none !important; }
+}

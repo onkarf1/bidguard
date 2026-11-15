@@ -103,7 +103,7 @@ function DisputeCase({ d, token, onDone }: { d: Dispute; token: string; onDone: 
 
       <div className="space-y-2 rounded-lg border border-slate-700 p-3">
         <label htmlFor={`bps-${d.id}`} className="label">Your ruling: refund {bps / 100}% of the price to the buyer {rec && rec.buyer_bps !== bps && <span className="text-amber-300">(AI said {rec.buyer_bps / 100}%)</span>}</label>
-        <input id={`bps-${d.id}`} type="range" min={0} max={10000} step={500} value={bps} onChange={(e) => setBps(Number(e.target.value))} className="w-full accent-amber-400" />
+        <input id={`bps-${d.id}`} type="range" min={0} max={10000} step={500} value={bps} onChange={(e) => setBps(Number(e.target.value))} className="w-full accent-[rgb(var(--brand))]" />
         <p className="text-sm text-slate-300">Buyer gets {usd(s.buyer)} · Seller gets {usd(s.seller)} · bond to the {s.bondTo}</p>
         <input className="input" maxLength={400} placeholder="Public ruling note (stored on-chain)" value={note} onChange={(e) => setNote(e.target.value)} aria-label="Ruling note" />
         <button className="btn-primary" onClick={execute} disabled={!!busy || note.trim().length < 3}>

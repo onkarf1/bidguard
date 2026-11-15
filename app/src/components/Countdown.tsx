@@ -13,7 +13,7 @@ export function Countdown({ endsAt, offset = 0, className = "" }: { endsAt: stri
   const ms = end - now;
   const urgent = ms > 0 && ms <= 30_000;
   return (
-    <span className={`font-mono tabular-nums ${urgent ? "text-rose-400" : ""} ${className}`} aria-live={urgent ? "polite" : "off"}>
+    <span className={`font-mono tabular-nums ${urgent ? "inline-block animate-pulse text-rose-400" : ""} ${className}`} aria-live={urgent ? "polite" : "off"}>
       {timeLeft(ms)}
     </span>
   );
