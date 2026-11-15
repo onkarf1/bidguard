@@ -18,6 +18,7 @@ import path from "path";
 import zlib from "zlib";
 import idl from "../target/idl/bidguard.json";
 import type { Bidguard } from "../target/types/bidguard";
+import { evidenceDigest, evidenceMessage, sha256Hex } from "../app/src/lib/evidence";
 
 const APP = process.env.APP ?? "http://localhost:3000";
 const env = Object.fromEntries(
@@ -49,12 +50,15 @@ async function api(p: string, body?: unknown) {
   return { ok: r.ok, status: r.status, j };
 }
 
+const SHAPE = { cx: 70 + Math.floor(Math.random() * 116), cy: 50 + Math.floor(Math.random() * 92), r: 30 + Math.floor(Math.random() * 25) };
 /** A 256×192 PNG of a yellow circle on a blue card, plus its 64-bit dHash. */
-function testImage() {
+function testImage(damaged = false) {
   const W = 256, H = 192;
   // Random circle position per run, so the duplicate-photo check doesn't match earlier runs.
-  const cx = 70 + Math.floor(Math.random() * 116), cy = 50 + Math.floor(Math.random() * 92), r = 30 + Math.floor(Math.random() * 25);
-  const px = (x: number, y: number) => ((x - cx) ** 2 + (y - cy) ** 2 < r ** 2 ? [250, 204, 21] : [37, 99, 235 - Math.floor(y / 2)]);
+  const { cx, cy, r } = SHAPE;
+  const base = (x: number, y: number) => ((x - cx) ** 2 + (y - cy) ** 2 < r ** 2 ? [250, 204, 21] : [37, 99, 235 - Math.floor(y / 2)]);
+  // "Damaged" copy: a thick dark crack across the card and a torn corner.
+  const px = (x: number, y: number) => (damaged && (Math.abs(y - (0.6 * x + 20)) < 4 || x + y < 40) ? [20, 20, 20] : base(x, y));
   const raw = Buffer.alloc((W * 3 + 1) * H);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) px(x, y).forEach((v, i) => (raw[y * (W * 3 + 1) + 1 + x * 3 + i] = v));
   const crc = (b: Buffer) => {
@@ -95,6 +99,61 @@ async function bid(auction: string, who: Keypair, amount: number, endsAt: number
   const msg = `BidGuard bid v1\nauction: ${auction}\namount: ${amount}\nnonce: ${nonce}\nexpires: ${expiry}`;
   const signature = bs58.encode(nacl.sign.detached(new TextEncoder().encode(msg), who.secretKey));
   return api(`/api/auctions/${auction}/bids`, { bidder: who.publicKey.toBase58(), amount, nonce, expiry, signature });
+}
+
+async function evidence(auction: string, who: Keypair, statement: string, images: string[]) {
+  const at = Math.floor(Date.now() / 1000);
+  const digest = await evidenceDigest(statement, await Promise.all(images.map(sha256Hex)));
+  const signature = bs58.encode(nacl.sign.detached(new TextEncoder().encode(evidenceMessage(auction, who.publicKey.toBase58(), digest, at)), who.secretKey));
+  return api(`/api/disputes/${auction}/evidence`, { wallet: who.publicKey.toBase58(), statement, images, at, signature });
+}
+
+async function disputeFlow(auction: string, auctionKey: PublicKey, seller: Keypair, alice: Keypair, bob: Keypair) {
+  const cfgKey = pda(Buffer.from("config"));
+  await prog(alice).methods.raiseDispute("Card arrived cracked in half and the corner is torn off.").accountsPartial({ buyer: alice.publicKey, auction: auctionKey }).rpc();
+  log("✓ buyer opened a dispute on-chain");
+  check(!(await evidence(auction, bob, "I am a bystander and I think the buyer is right about everything here.", [])).ok, "a third party can't submit evidence");
+  {
+    // Signed one statement, sent another: the seller can't put words in the buyer's mouth.
+    const at = Math.floor(Date.now() / 1000);
+    const digest = await evidenceDigest("The item was fine, I withdraw my complaint.", []);
+    const sig = bs58.encode(nacl.sign.detached(new TextEncoder().encode(evidenceMessage(auction, alice.publicKey.toBase58(), digest, at)), alice.secretKey));
+    const r = await api(`/api/disputes/${auction}/evidence`, { wallet: alice.publicKey.toBase58(), statement: "Totally different text than what was signed.", images: [], at, signature: sig });
+    check(!r.ok, "evidence that doesn't match its signature is rejected");
+  }
+  const dmg = testImage(true).dataUrl;
+  check((await evidence(auction, alice, "Here is the card as it arrived: a crack runs right across it and the top-left corner is ripped off. The listing said new.", [dmg])).ok, "buyer evidence with photo accepted");
+  check((await evidence(auction, seller, "It was in perfect condition when I shipped it in a sleeve, see my listing photo. Maybe the carrier damaged it.", [testImage().dataUrl])).ok, "seller response with photo accepted");
+
+  const t = Date.now();
+  const j = await api(`/api/disputes/${auction}/judge`, {});
+  check(j.ok && typeof j.j.recommendation?.buyer_bps === "number", `AI Judge recommendation in ${((Date.now() - t) / 1000).toFixed(1)}s`);
+  const rec = j.j.recommendation;
+  log(`   → ${rec.outcome} · buyer ${rec.buyer_bps / 100}% · confidence ${Math.round(rec.confidence * 100)}%`);
+  log(`   summary: ${rec.summary}`);
+  for (const f of rec.findings) log(`   - ${f}`);
+
+  check((await fetch(`${APP}/api/admin/disputes/${auction}/resolve`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ buyerBps: 10000, note: "x" }) })).status === 401, "only the arbiter can execute a ruling");
+  const q: any = await (await fetch(`${APP}/api/admin/disputes`, { headers: { "x-admin-token": env.ADMIN_TOKEN } })).json();
+  check(q.open.some((d: any) => d.id === auction && d.recommendation), "dispute shows in the arbiter queue with the AI recommendation");
+
+  const p = prog(alice);
+  const a = await p.account.auction.fetch(auctionKey);
+  const [b0, s0] = [await usdcOf(alice.publicKey), await usdcOf(seller.publicKey)];
+  const res = await fetch(`${APP}/api/admin/disputes/${auction}/resolve`, { method: "POST", headers: { "Content-Type": "application/json", "x-admin-token": env.ADMIN_TOKEN }, body: JSON.stringify({ buyerBps: rec.buyer_bps, note: rec.note }) });
+  const rj: any = await res.json();
+  check(res.ok && rj.resolution.followedAi, `arbiter executed the AI's ruling on-chain (tx ${rj.resolution?.tx?.slice(0, 10)}…)`);
+  const price = a.price.toNumber(), bond = a.bond.toNumber();
+  const toBuyer = Math.floor((price * rec.buyer_bps) / 10000);
+  const fee = Math.floor(((price - toBuyer) * 250) / 10000);
+  const wins = rec.buyer_bps * 2 >= 10000;
+  const expBuyer = (toBuyer + (wins ? bond : 0)) / U, expSeller = (price - toBuyer - fee + (wins ? 0 : bond)) / U;
+  const [b1, s1] = [await usdcOf(alice.publicKey), await usdcOf(seller.publicKey)];
+  check(Math.abs(b1 - b0 - expBuyer) < 1e-6 && Math.abs(s1 - s0 - expSeller) < 1e-6, `payouts match: buyer +${(b1 - b0).toFixed(4)}, seller +${(s1 - s0).toFixed(4)} USDC`);
+  const f = (await api(`/api/disputes/${auction}`)).j;
+  check(f.chain.status === "resolved" && f.chain.buyerBps === rec.buyer_bps, "escrow resolved; ruling recorded on-chain");
+  check(!(await evidence(auction, alice, "One more thing after the ruling was made, please reconsider.", [])).ok, "no evidence after the dispute is closed");
+  void cfgKey;
 }
 
 function check(cond: unknown, what: string) {
@@ -204,18 +263,22 @@ async function main() {
   log("✓ seller marked shipped");
   const car = await api(`/api/escrow/${auction}/carrier`, {});
   check(car.ok, `carrier oracle: ${car.j.tracking?.carrier} delivered`);
-  const before = await usdcOf(seller.publicKey);
-  const p = prog(alice);
-  const a = await p.account.auction.fetch(auctionKey);
-  const cfg = await p.account.config.fetch(pda(Buffer.from("config")));
-  await p.methods
-    .confirmDelivery()
-    .accountsPartial({ authority: alice.publicKey, config: pda(Buffer.from("config")), auction: auctionKey, escrow: pda(Buffer.from("escrow"), auctionKey.toBuffer()), sellerProfile: pda(Buffer.from("seller"), seller.publicKey.toBuffer()), seller: seller.publicKey, sellerToken: ata(seller.publicKey), buyerToken: ata(a.buyer), treasuryToken: ata(cfg.treasury), mint: MINT, tokenProgram: TOKEN_PROGRAM_ID })
-    .rpc();
-  const after = await usdcOf(seller.publicKey);
-  check(Math.abs(after - before - (15 * 0.975 + a.bond.toNumber() / U)) < 1e-6, `seller received ${(after - before).toFixed(4)} USDC (price − 2.5% fee + bond back)`);
-  const final = (await api(`/api/auctions/${auction}`)).j;
-  check(final.escrow.status === "released" && final.seller.sales === 1, "escrow released; seller reputation +1 sale");
+  if (process.env.FLOW === "dispute") {
+    await disputeFlow(auction, auctionKey, seller, alice, bob);
+  } else {
+    const before = await usdcOf(seller.publicKey);
+    const p = prog(alice);
+    const a = await p.account.auction.fetch(auctionKey);
+    const cfg = await p.account.config.fetch(pda(Buffer.from("config")));
+    await p.methods
+      .confirmDelivery()
+      .accountsPartial({ authority: alice.publicKey, config: pda(Buffer.from("config")), auction: auctionKey, escrow: pda(Buffer.from("escrow"), auctionKey.toBuffer()), sellerProfile: pda(Buffer.from("seller"), seller.publicKey.toBuffer()), seller: seller.publicKey, sellerToken: ata(seller.publicKey), buyerToken: ata(a.buyer), treasuryToken: ata(cfg.treasury), mint: MINT, tokenProgram: TOKEN_PROGRAM_ID })
+      .rpc();
+    const after = await usdcOf(seller.publicKey);
+    check(Math.abs(after - before - (15 * 0.975 + a.bond.toNumber() / U)) < 1e-6, `seller received ${(after - before).toFixed(4)} USDC (price − 2.5% fee + bond back)`);
+    const final = (await api(`/api/auctions/${auction}`)).j;
+    check(final.escrow.status === "released" && final.seller.sales === 1, "escrow released; seller reputation +1 sale");
+  }
   log("\nAll end-to-end checks passed.", `${APP}/auction/${auction}`);
 }
 
