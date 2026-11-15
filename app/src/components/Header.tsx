@@ -38,7 +38,7 @@ export function Header() {
             Bid<span className="font-light text-slate-400">Guard</span>
           </span>
           {CLUSTER !== "mainnet-beta" && (
-            <span className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] font-medium uppercase text-slate-400">
+            <span className="hidden rounded border border-slate-700 px-1.5 py-0.5 text-[10px] font-medium uppercase text-slate-400 sm:inline">
               {CLUSTER}
             </span>
           )}

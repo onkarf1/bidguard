@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BadgeCheck, Gavel, ScanEye, Scale, ShieldCheck, Sparkles, Vault, Zap } from "lucide-react";
 import { AuctionCard, type AuctionSummary } from "@/components/AuctionCard";
 import { AnimatedNumber, Reveal, rise, stagger } from "@/components/motion";
+import { ImageStreamHero } from "@/components/ImageStreamHero";
 import { fromBaseUnits } from "@/lib/format";
 
 type Stats = { live: number; bids: number; sales: number; volume: number; flagged: number };
@@ -44,58 +45,50 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="space-y-16">
-      {/* ── hero ── */}
-      <section className="relative -mx-4 overflow-hidden rounded-3xl px-4 py-10 sm:py-14">
-        <div className="grid-bg absolute inset-0" aria-hidden />
-        <div className="aurora -left-20 -top-24 h-80 w-80" aria-hidden />
-        <div className="aurora right-0 top-10 h-72 w-72" style={{ animationDelay: "-6s", opacity: 0.08 }} aria-hidden />
-        <div className="aurora bottom-0 left-1/3 h-64 w-64" style={{ animationDelay: "-12s", opacity: 0.1 }} aria-hidden />
-        <div className="relative grid items-center gap-10 md:grid-cols-[1.25fr_1fr]">
-          <div className="space-y-6">
-            <motion.span initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-xs font-medium text-brand">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden /> AI-vetted · deposit-backed · escrowed on Solana
-            </motion.span>
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">
-              <motion.span variants={stagger} initial="hidden" animate="show" className="flex flex-wrap gap-x-3">
-                {WORDS.map((w, i) => (
-                  <motion.span key={i} variants={{ hidden: { opacity: 0, y: 30, rotateX: -60 }, show: { opacity: 1, y: 0, rotateX: 0, transition: { type: "spring", stiffness: 200, damping: 18 } } }} className={i >= 3 ? "shimmer-text" : ""}>
-                    {w}
-                  </motion.span>
-                ))}
+    <div className="-mt-8 space-y-14 sm:-mt-10">
+      {/* ── hero: product photos stream out of the vanishing point ── */}
+      <ImageStreamHero>
+        <motion.span initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-xs font-medium text-slate-300 backdrop-blur">
+          <Sparkles className="h-3.5 w-3.5" aria-hidden /> AI-vetted · deposit-backed · escrowed on Solana
+        </motion.span>
+        <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
+          <motion.span variants={stagger} initial="hidden" animate="show" className="flex flex-wrap justify-center gap-x-3 sm:gap-x-4">
+            {WORDS.map((w, i) => (
+              <motion.span key={i} variants={{ hidden: { opacity: 0, y: 30, rotateX: -60 }, show: { opacity: 1, y: 0, rotateX: 0, transition: { type: "spring", stiffness: 200, damping: 18 } } }} className={i >= 3 ? "shimmer-text" : ""}>
+                {w}
               </motion.span>
-            </h1>
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="max-w-xl text-lg text-slate-300">
-              AI agents vet each listing before it goes live. Bids are backed by deposits, so nobody can bid and vanish. The winner&apos;s payment sits in escrow until the item arrives.
-            </motion.p>
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="flex flex-wrap gap-3">
-              <motion.a whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} href="#live" className="btn-primary shadow-lg shadow-slate-50/10">
-                <Gavel className="h-4 w-4" aria-hidden /> Browse live auctions
-              </motion.a>
-              <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-                <Link href="/sell" className="btn-secondary backdrop-blur">Sell something</Link>
-              </motion.div>
-            </motion.div>
-          </div>
-          <motion.ul variants={stagger} initial="hidden" animate="show" className="grid gap-3 text-sm">
-            {[
-              { icon: BadgeCheck, t: "Vetted listings", d: "Five AI agents check photos, price and seller history and give every listing a Trust Score." },
-              { icon: ScanEye, t: "Fake & AI photos caught", d: "Provenance metadata and visual forensics flag AI-generated or reused photos." },
-              { icon: Vault, t: "Deposit-backed bids", d: "Bids come from your Bid Vault, signed in your wallet: instant, gas-free, impossible to fake." },
-              { icon: ShieldCheck, t: "Escrow until delivery", d: "Funds release on delivery. Sellers post a bond that goes to the buyer if they don't ship." },
-              { icon: Scale, t: "AI Dispute Judge", d: "Weighs both sides' evidence; a human arbiter executes the ruling on-chain." },
-            ].map(({ icon: Icon, t, d }) => (
-              <motion.li key={t} variants={rise} whileHover={{ x: 6 }} className="card flex gap-3 !p-4 backdrop-blur">
-                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden />
-                <span>
-                  <span className="font-semibold">{t}</span>
-                  <span className="block text-slate-400">{d}</span>
-                </span>
-              </motion.li>
             ))}
-          </motion.ul>
-        </div>
-      </section>
+          </motion.span>
+        </h1>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-6 max-w-xl text-lg text-slate-300">
+          AI agents vet each listing before it goes live. Bids are backed by deposits, so nobody can bid and vanish. The winner&apos;s payment sits in escrow until the item arrives.
+        </motion.p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="mt-8 flex flex-wrap justify-center gap-3">
+          <motion.a whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} href="#live" className="btn-primary shadow-lg shadow-slate-50/10">
+            <Gavel className="h-4 w-4" aria-hidden /> Browse live auctions
+          </motion.a>
+          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+            <Link href="/sell" className="btn-secondary bg-slate-950/60 backdrop-blur">Sell something</Link>
+          </motion.div>
+        </motion.div>
+      </ImageStreamHero>
+
+      {/* ── how BidGuard protects you ── */}
+      <motion.ul variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-60px" }} className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5">
+        {[
+          { icon: BadgeCheck, t: "Vetted listings", d: "Five AI agents check photos, price and seller history and give every listing a Trust Score." },
+          { icon: ScanEye, t: "Fake & AI photos caught", d: "Provenance metadata and visual forensics flag AI-generated or reused photos." },
+          { icon: Vault, t: "Deposit-backed bids", d: "Bids come from your Bid Vault, signed in your wallet: instant, gas-free, impossible to fake." },
+          { icon: ShieldCheck, t: "Escrow until delivery", d: "Funds release on delivery. Sellers post a bond that goes to the buyer if they don't ship." },
+          { icon: Scale, t: "AI Dispute Judge", d: "Weighs both sides' evidence; a human arbiter executes the ruling on-chain." },
+        ].map(({ icon: Icon, t, d }) => (
+          <motion.li key={t} variants={rise} whileHover={{ y: -4 }} className="card !p-4">
+            <Icon className="mb-2 h-5 w-5 text-brand" aria-hidden />
+            <span className="font-semibold">{t}</span>
+            <span className="mt-1 block text-slate-400">{d}</span>
+          </motion.li>
+        ))}
+      </motion.ul>
 
       {/* ── live stats ── */}
       <Reveal>
@@ -117,7 +110,7 @@ export default function Home() {
 
       {/* ── activity ticker ── */}
       {feed.length > 0 && (
-        <div className="relative -mx-4 overflow-hidden border-y border-slate-800 bg-slate-900/40 py-2.5" aria-label="Recent activity">
+        <div className="relative ml-[calc(50%-50vw)] w-screen overflow-hidden border-y border-slate-800 bg-slate-900/40 py-2.5" aria-label="Recent activity">
           <div className="marquee flex w-max gap-10 whitespace-nowrap text-sm">
             {[...feed, ...feed].map((e, i) => (
               <Link key={`${e.id}-${i}`} href={`/auction/${e.auctionId}`} className="flex items-center gap-2 text-slate-300 hover:text-brand" tabIndex={i >= feed.length ? -1 : 0} aria-hidden={i >= feed.length}>

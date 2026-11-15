@@ -29,6 +29,8 @@ const MINT = new PublicKey(env.NEXT_PUBLIC_USDC_MINT);
 const admin = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(fs.readFileSync(path.join(os.homedir(), ".config/solana/id.json"), "utf8"))));
 const U = 1_000_000;
 const DURATIONS = [25, 45, 90, 180, 360, 720, 1440, 120, 60, 240]; // minutes, so auctions end at staggered times
+// MINUTES=3 makes short auctions that end (and settle) soon, to fill "Recently ended".
+const FIXED_MINUTES = process.env.MINUTES ? Math.max(2, Number(process.env.MINUTES)) : null;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const log = (...a: unknown[]) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const pda = (...s: Buffer[]) => PublicKey.findProgramAddressSync(s, new PublicKey(idl.address))[0];
@@ -99,7 +101,11 @@ async function main() {
   // Skip samples already on the site (their photos would rightly be flagged as reused).
   const existing = await api("/api/auctions");
   const used = new Set([...(existing.j.live ?? []), ...(existing.j.ended ?? [])].map((a: { title: string }) => a.title));
-  const picks = SAMPLES.filter((s) => !used.has(s.title)).sort(() => Math.random() - 0.5).slice(0, COUNT);
+  // Also skip anything submitted before, even if it was rejected (its photo is already on file).
+  const triedFile = path.join(ROOT, ".keys", "seeded-items.json");
+  const tried: string[] = fs.existsSync(triedFile) ? JSON.parse(fs.readFileSync(triedFile, "utf8")) : [];
+  const picks = SAMPLES.filter((s) => !used.has(s.title) && !tried.includes(s.slug)).sort(() => Math.random() - 0.5).slice(0, COUNT);
+  fs.writeFileSync(triedFile, JSON.stringify([...tried, ...picks.map((p) => p.slug)]));
   if (!picks.length) return log("Every sample item is already listed.");
   const sellers = picks.map(() => Keypair.generate());
   await fundSol([...bidders.map((b) => b.publicKey), ...sellers.map((s) => s.publicKey)], 0.05);
@@ -129,7 +135,7 @@ async function main() {
     const res = await fetch(APP + "/api/listings", {
       method: "POST",
       headers: { "Content-Type": "application/json", Origin: APP },
-      body: JSON.stringify({ seller: seller.publicKey.toBase58(), title: s.title, description: `${s.description}\n\n${creditLine(s)}`, category: s.category, condition: s.condition, startPrice: start, durationMinutes: DURATIONS[i % DURATIONS.length], images: [{ dataUrl: `data:image/jpeg;base64,${file.toString("base64")}`, dhash: hex, exif: null, aiMarkers: [], width, height }] }),
+      body: JSON.stringify({ seller: seller.publicKey.toBase58(), title: s.title, description: `${s.description}\n\n${creditLine(s)}`, category: s.category, condition: s.condition, startPrice: start, durationMinutes: FIXED_MINUTES ?? DURATIONS[i % DURATIONS.length], images: [{ dataUrl: `data:image/jpeg;base64,${file.toString("base64")}`, dhash: hex, exif: null, aiMarkers: [], width, height }] }),
     });
     const lines = (await res.text()).split("\n").filter(Boolean).map((l) => JSON.parse(l));
     const result = lines.find((l) => l.type === "result");
@@ -140,13 +146,17 @@ async function main() {
     const lid = result.listing._id;
     const t = result.listing.trust;
     log(`  ${s.title}: Trust ${t.score} → ${t.decision}`);
-    if (result.listing.status === "rejected") {
-      log("    left rejected (as a moderator would)");
-      continue;
-    }
-    if (result.listing.status === "held") {
-      // A human moderator reviewed these demo items: real photos of real products.
-      await api(`/api/admin/listings/${lid}`, { action: "approve", note: "Demo listing reviewed by moderator" }, { "x-admin-token": env.ADMIN_TOKEN });
+    if (result.listing.status === "held" || result.listing.status === "rejected") {
+      // Moderator review of a demo item. Demo seller wallets are all new and funded by one admin
+      // wallet, so Seller Risk (correctly) flags them as a sybil cluster. A moderator approves only
+      // when the item itself is clean: fair price, photo not reused, not AI-generated.
+      const ag = t.agents ?? {};
+      const clean = ag.price?.flag !== "suspiciously_low" && !ag.inspector?.reused_photo && ag.aiImage?.verdict !== "likely_ai";
+      if (!clean) {
+        log(`    left ${result.listing.status}: ${t.reasons[0]}`);
+        continue;
+      }
+      await api(`/api/admin/listings/${lid}`, { action: "approve", note: "Demo item reviewed: fair price, original photo; risk comes from shared demo funding" }, { "x-admin-token": env.ADMIN_TOKEN });
     }
     const built = await api(`/api/listings/${lid}/tx`, { seller: seller.publicKey.toBase58() });
     if (!built.ok) {
@@ -168,7 +178,7 @@ async function main() {
 
   // A few opening bids so the rooms feel alive (bidders rotate; each stays within its vault).
   for (const [i, c] of created.entries()) {
-    const rounds = 1 + (i % 3);
+    const rounds = FIXED_MINUTES ? 2 + (i % 3) : 1 + (i % 3);
     let amount = c.start;
     for (let r = 0; r < rounds; r++) {
       const who = bidders[(i + r) % bidders.length];

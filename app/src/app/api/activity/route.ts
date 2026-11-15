@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 /** Site-wide live feed for the home page ticker: latest bids, extensions and sales. */
 export async function GET() {
   const d = await db();
-  const events = await d.collection("events").find({ type: { $in: ["bid_placed", "timer_extended", "auction_closed"] } }).sort({ _id: -1 }).limit(24).toArray();
+  const hidden = (await d.collection("auctions").find({ hidden: true }, { projection: { _id: 1 } }).toArray()).map((a) => String(a._id));
+  const events = await d.collection("events").find({ type: { $in: ["bid_placed", "timer_extended", "auction_closed"] }, auctionId: { $nin: hidden } }).sort({ _id: -1 }).limit(24).toArray();
   const titles = new Map((await d.collection("auctions").find({ _id: { $in: Array.from(new Set(events.map((e) => e.auctionId))) } }, { projection: { title: 1 } }).toArray()).map((a) => [String(a._id), a.title as string]));
   const items = events.map((e) => {
     const t = titles.get(e.auctionId) ?? "an item";

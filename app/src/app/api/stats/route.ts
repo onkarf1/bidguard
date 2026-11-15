@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const d = await db();
   const [live, bids, sold, blocked] = await Promise.all([
-    d.collection("auctions").countDocuments({ status: { $in: ["live", "closing"] } }),
+    d.collection("auctions").countDocuments({ status: { $in: ["live", "closing"] }, hidden: { $ne: true } }),
     d.collection("bids").countDocuments({ accepted: true }),
     d.collection("auctions").aggregate([{ $match: { status: "settled" } }, { $group: { _id: null, n: { $sum: 1 }, v: { $sum: "$currentBid" } } }]).toArray(),
     d.collection("listings").countDocuments({ "trust.decision": { $in: ["hold", "reject"] } }),
