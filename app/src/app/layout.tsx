@@ -5,9 +5,9 @@ import { Providers } from "@/components/Providers";
 import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
-  title: "TrustLink — escrow links for freelancers & social sellers",
+  title: "BidGuard: live auctions you can trust",
   description:
-    "Get paid safely. Share a payment link, the buyer's USDC is locked in a Solana escrow, and it's released when the work is delivered. Disputes are settled by an AI arbitrator.",
+    "AI agents vet every listing, every bid is backed by a deposit, and escrow makes sure the seller ships. Live auctions on Solana.",
   icons: { icon: "/icon.svg" },
 };
 
@@ -17,9 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-slate-950 text-slate-100 antialiased">
         <Providers>
           <Header />
-          <main className="mx-auto max-w-5xl px-4 py-8 sm:py-12">{children}</main>
-          <footer className="mx-auto max-w-5xl px-4 pb-10 text-xs text-slate-500">
-            Funds are held by an on-chain program, never by TrustLink. Built on Solana.
+          <main className="mx-auto max-w-6xl px-4 py-8 sm:py-10">{children}</main>
+          <footer className="mx-auto max-w-6xl px-4 pb-10 text-xs text-slate-500">
+            Bids are backed by on-chain deposits and payments sit in escrow: BidGuard never holds your money. Testnet prototype on Solana devnet.
           </footer>
         </Providers>
       </body>

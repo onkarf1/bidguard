@@ -29,17 +29,24 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icon.svg" alt="" className="h-7 w-7" />
-          <span>TrustLink</span>
+          <span>
+            Bid<span className="text-brand">Guard</span>
+          </span>
           {CLUSTER !== "mainnet-beta" && (
             <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-300">
               {CLUSTER}
             </span>
           )}
         </Link>
+        <nav className="hidden items-center gap-1 text-sm text-slate-400 md:flex" aria-label="Main">
+          <Link href="/" className="rounded-lg px-3 py-2 hover:bg-slate-800 hover:text-white">Auctions</Link>
+          <Link href="/sell" className="rounded-lg px-3 py-2 hover:bg-slate-800 hover:text-white">Sell</Link>
+          <Link href="/vault" className="rounded-lg px-3 py-2 hover:bg-slate-800 hover:text-white">Bid Vault</Link>
+        </nav>
         <div className="flex items-center gap-2">
           {publicKey && CLUSTER !== "mainnet-beta" && (
             <button
