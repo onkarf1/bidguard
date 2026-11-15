@@ -8,6 +8,8 @@ import { Countdown } from "@/components/Countdown";
 import { TrustBadge } from "@/components/TrustBadge";
 import { PhotoCheck, type AiImage } from "@/components/PhotoCheck";
 import { DisputePanel } from "@/components/DisputePanel";
+import { AnimatePresence, motion } from "framer-motion";
+import { AnimatedNumber, confetti } from "@/components/motion";
 import { friendlyError, useBidguard } from "@/lib/useBidguard";
 import { BID_VALIDITY_SECS, MAX_NOTE_LEN, MAX_TRACKING_LEN, explorerAddress, explorerTx } from "@/lib/config";
 import { fromBaseUnits, short, toBaseUnits, usd } from "@/lib/format";
@@ -48,6 +50,8 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
   const [tracking, setTracking] = useState("");
   const [reason, setReason] = useState("");
   const [photo, setPhoto] = useState(0);
+  const [toast, setToast] = useState("");
+  const [shake, setShake] = useState(0);
   const me = publicKey?.toBase58();
 
   const load = useCallback(async () => {
@@ -77,16 +81,22 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
     });
     es.addEventListener("outbid", (e) => {
       const d = JSON.parse((e as MessageEvent).data);
-      if (d.bidder === meRef.current) setMsg({ tone: "err", text: `You've been outbid at ${usd(d.amount)}.` });
+      if (d.bidder === meRef.current) {
+        setMsg({ tone: "err", text: `You've been outbid at ${usd(d.amount)}.` });
+        setShake((n) => n + 1);
+      }
     });
     es.addEventListener("timer_extended", (e) => {
       const d = JSON.parse((e as MessageEvent).data);
       setRoom((r) => (r ? { ...r, auction: { ...r.auction, endsAt: d.endsAt, extensions: d.extensions } } : r));
       push({ id: (e as MessageEvent).lastEventId, text: "Late bid: clock extended by 30 seconds", tone: "warn" });
+      setToast("+30s · late bid extended the clock");
+      setTimeout(() => setToast(""), 2500);
     });
     es.addEventListener("auction_closed", (e) => {
       const d = JSON.parse((e as MessageEvent).data);
       push({ id: (e as MessageEvent).lastEventId, text: d.winner ? `Sold to ${d.winner === meRef.current ? "you" : short(d.winner)} for ${usd(d.amount)}` : "Ended with no bids", tone: "info" });
+      if (d.winner && d.winner === meRef.current) confetti();
       load();
     });
     return () => es.close();
@@ -116,6 +126,8 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
         throw new Error(j.error);
       }
       setMsg({ tone: "ok", text: j.extended ? "You're the top bidder. The clock was extended." : "You're the top bidder." });
+      const btn = (e.target as HTMLFormElement).querySelector("button[type=submit], button:not([type])")?.getBoundingClientRect();
+      confetti(btn ? { x: btn.left + btn.width / 2, y: btn.top } : undefined);
     } catch (e) {
       setMsg({ tone: "err", text: friendlyError(e) });
     } finally {
@@ -164,7 +176,9 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
       <div className="space-y-4">
         <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {L.images[photo] && <img src={`/api/images/${L.images[photo]}`} alt={L.title} className="aspect-[4/3] w-full object-contain" />}
+          <AnimatePresence mode="wait">
+            {L.images[photo] && <motion.img key={photo} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }} src={`/api/images/${L.images[photo]}`} alt={L.title} className="aspect-[4/3] w-full object-contain" />}
+          </AnimatePresence>
         </div>
         {L.images.length > 1 && (
           <div className="flex gap-2">
@@ -202,9 +216,16 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
       </div>
 
       <div className="space-y-4">
-        <div className="card space-y-4">
+        <div key={`bidcard-${shake}`} className={`card relative space-y-4 ${shake ? "shake" : ""}`}>
+          <AnimatePresence>
+            {toast && (
+              <motion.div initial={{ opacity: 0, y: -10, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10 }} className="absolute -top-4 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-rose-500 px-3 py-1 text-xs font-bold text-white shadow-lg shadow-rose-500/30">
+                {toast}
+              </motion.div>
+            )}
+          </AnimatePresence>
           <div className="flex items-center justify-between">
-            <span className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase ${live ? "bg-rose-500 text-white" : "bg-slate-800 text-slate-300"}`}>{live ? "Live" : a.status === "settled" ? "Sold" : a.status === "unsold" ? "No sale" : "Ended"}</span>
+            <span className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase ${live ? "bg-rose-500 text-white" : "bg-slate-800 text-slate-300"}`}>{live ? <span className="flex items-center gap-1.5"><span className="live-dot !bg-white" /> Live</span> : a.status === "settled" ? "Sold" : a.status === "unsold" ? "No sale" : "Ended"}</span>
             {live && (
               <span className="flex items-center gap-1.5 text-2xl font-semibold">
                 <Timer className="h-5 w-5 text-slate-400" aria-hidden /> <Countdown endsAt={a.endsAt} offset={offset} />
@@ -213,7 +234,9 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
           </div>
           <div key={flash} className={`rounded-xl p-3 ${flash ? "flash" : ""}`}>
             <div className="text-sm text-slate-400">{a.currentBid ? `Current bid · ${a.bidCount} bid${a.bidCount === 1 ? "" : "s"}` : "Starting bid"}</div>
-            <div className="text-4xl font-bold text-brand" aria-live="polite">{usd(a.currentBid ?? a.startPrice)}</div>
+            <motion.div key={a.currentBid ?? 0} initial={{ scale: 1.15 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 380, damping: 14 }} className="origin-left text-5xl font-extrabold text-brand" aria-live="polite">
+              <AnimatedNumber value={fromBaseUnits(a.currentBid ?? a.startPrice)} format={(n) => n.toLocaleString("en-US", { style: "currency", currency: "USD" })} />
+            </motion.div>
             {a.currentBidder && <div className="text-sm text-slate-400">{leading ? "You're winning" : `Top bidder ${short(a.currentBidder)}`}</div>}
             {a.extensions > 0 && live && <div className="text-xs text-amber-300">Extended {a.extensions}× by late bids</div>}
           </div>
@@ -283,7 +306,13 @@ export default function AuctionRoom({ params }: { params: { id: string } }) {
         <div className="card space-y-2">
           <h2 className="font-semibold">Activity</h2>
           <ol className="space-y-1.5 text-sm" aria-live="polite">
-            {feed.map((f) => <li key={f.id} className={f.tone === "warn" ? "text-amber-300" : f.tone === "info" ? "text-emerald-300" : "text-slate-200"}>{f.text}</li>)}
+            <AnimatePresence initial={false}>
+              {feed.map((f) => (
+                <motion.li key={f.id} layout initial={{ opacity: 0, x: -20, backgroundColor: "rgba(127,127,127,0.25)" }} animate={{ opacity: 1, x: 0, backgroundColor: "rgba(127,127,127,0)" }} transition={{ duration: 0.6 }} className={`rounded px-1 ${f.tone === "warn" ? "text-amber-300" : f.tone === "info" ? "text-emerald-300" : "text-slate-200"}`}>
+                  {f.text}
+                </motion.li>
+              ))}
+            </AnimatePresence>
             {room.bids.filter((b) => !feed.length).map((b) => (
               <li key={b._id} className="flex justify-between text-slate-300">
                 <span>{b.bidder === me ? "You" : short(b.bidder)}{b.signer !== b.bidder && <Bot className="ms-1 inline h-3.5 w-3.5 text-brand" aria-label="via agent" />}</span>

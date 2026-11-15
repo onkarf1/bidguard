@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Transaction } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { ImagePlus, Loader2, X } from "lucide-react";
+import { Dices, ImagePlus, Loader2, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { SAMPLES, creditLine } from "@/lib/samples";
 import { AgentTrace, type TraceEvent } from "@/components/AgentTrace";
 import { TrustBadge } from "@/components/TrustBadge";
 import { PhotoCheck, type AiImage } from "@/components/PhotoCheck";
@@ -46,6 +48,22 @@ export default function Sell() {
     try {
       const prepared = await Promise.all(Array.from(files).slice(0, 4 - images.length).map(prepareImage));
       setImages((cur) => [...cur, ...prepared].slice(0, 4));
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
+  /** Fills the form with a random demo item and its real (freely licensed) photo. */
+  async function trySample() {
+    setError("");
+    const pick = SAMPLES.filter((x) => x.title !== form.title)[Math.floor(Math.random() * (SAMPLES.length - 1))];
+    try {
+      const blob = await (await fetch(pick.image)).blob();
+      const img = await prepareImage(new File([blob], `${pick.slug}.jpg`, { type: "image/jpeg" }));
+      setImages([img]);
+      setForm((f) => ({ ...f, title: pick.title, description: `${pick.description}\n\n${creditLine(pick)}`, category: pick.category, condition: pick.condition, startPrice: String(pick.price) }));
+      setResult(null);
+      setTrace([]);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -142,9 +160,14 @@ export default function Sell() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
       <form onSubmit={submit} className="card space-y-5">
-        <div>
-          <h1 className="text-2xl font-bold">List an item</h1>
-          <p className="text-sm text-slate-400">Our agents check your photos, price and history before the auction goes live. Use real photos of the item you have.</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold">List an item</h1>
+            <p className="text-sm text-slate-400">Our agents check your photos, price and history before the auction goes live. Use real photos of the item you have.</p>
+          </div>
+          <button type="button" onClick={trySample} className="btn-secondary shrink-0" title="Fill in a random demo item">
+            <Dices className="h-4 w-4" aria-hidden /> Try a sample item
+          </button>
         </div>
 
         <div>
@@ -221,7 +244,7 @@ export default function Sell() {
           {trace.length === 0 ? <p className="text-sm text-slate-400">Listing Inspector, AI Image Detector, Price Sanity and Seller Risk run in parallel when you submit.</p> : <AgentTrace events={trace} />}
         </div>
         {result && decision && (
-          <div className="card space-y-4">
+          <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 22 }} className="card space-y-4">
             <div className="flex items-center gap-4">
               <TrustBadge score={result.listing.trust.score} size="lg" />
               <div>
@@ -248,7 +271,7 @@ export default function Sell() {
               </p>
             )}
             <p className="text-xs text-slate-500">Detection is probabilistic: the score combines risk signals and is not a verdict.</p>
-          </div>
+          </motion.div>
         )}
       </aside>
     </div>
