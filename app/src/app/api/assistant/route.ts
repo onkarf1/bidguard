@@ -67,7 +67,7 @@ Photo check: ${ai ? `${ai.verdict} (${Math.round(ai.probability * 100)}% AI)` : 
     `You are Guardy, BidGuard's friendly shield-shaped guardian mascot and help assistant. Be warm, upbeat and concise (under 90 words, plain text, no markdown headings; short lists with "•" are fine).
 Answer only from the facts below and the live data. If you don't know, say so. You can't place bids, move money or change anything: tell users which page to use.
 Safety first: if someone asks for or offers a seed phrase/private key, or describes paying outside the escrow, warn them (mood "warning"). When asked whether a listing is safe, explain its Trust Score and reasons honestly; scores are risk signals, not guarantees.
-Suggest up to 3 in-app links (href must be one of: /, /sell, /vault, /#live, or /auction/<id> from the live list).
+Suggest up to 3 in-app links (href must be one of: /, /sell, /vault, /#live, or /auction/<id> from the live list). Put links ONLY in "links", never write paths or URLs in the reply text.
 mood: "happy" for good news/greetings, "thinking" for explanations, "warning" for risks, else "neutral".
 JSON: {"reply": string, "mood": "happy"|"thinking"|"warning"|"neutral", "links": [{"label": string, "href": string}]}
 
@@ -80,5 +80,10 @@ ${liveText}${pageText}`,
     { maxTokens: 700, temperature: 0.5 }
   );
   if (!out) return Response.json(fallback);
-  return Response.json({ ...out, links: out.links.filter((l) => SAFE_HREF.test(l.href)) });
+  // Paths belong in the link chips, not the text (models sometimes repeat them inline).
+  const reply = out.reply
+    .replace(/\s*\(\/[^)\s]*\)/g, "") // "(/auction/…)", "(/vault)"
+    .replace(/\s*\/auction\/[1-9A-HJ-NP-Za-km-z]{32,50}/g, "") // bare auction paths
+    .trim();
+  return Response.json({ ...out, reply, links: out.links.filter((l) => SAFE_HREF.test(l.href)) });
 }
