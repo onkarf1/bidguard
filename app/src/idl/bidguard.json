@@ -1,0 +1,2536 @@
+{
+  "address": "6upAUdnE4srVXtYEw1AMhxBxmoZLZ45sJq9dMgRwcp8",
+  "metadata": {
+    "name": "bidguard",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "BidGuard: deposit-backed live auctions with escrow and AI-vetted listings"
+  },
+  "instructions": [
+    {
+      "name": "cancel_unsold",
+      "docs": [
+        "No valid bids: the operator (who saw every bid) closes it and the seller gets the bond back."
+      ],
+      "discriminator": [
+        200,
+        104,
+        243,
+        142,
+        39,
+        96,
+        84,
+        65
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              },
+              {
+                "kind": "account",
+                "path": "auction.auction_id",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  108,
+                  108,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "relations": [
+            "auction"
+          ]
+        },
+        {
+          "name": "seller_token",
+          "writable": true
+        },
+        {
+          "name": "buyer_token",
+          "docs": [
+            "The winning buyer's token account; for unsold auctions any account owned by the seller is fine (nothing is paid to it)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "treasury_token",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config",
+            "auction"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_withdraw",
+      "discriminator": [
+        112,
+        53,
+        226,
+        58,
+        158,
+        30,
+        37,
+        168
+      ],
+      "accounts": [
+        {
+          "name": "bidder",
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_tokens",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "confirm_delivery",
+      "docs": [
+        "The buyer is happy: pay the seller now and return their bond."
+      ],
+      "discriminator": [
+        11,
+        109,
+        227,
+        53,
+        179,
+        190,
+        88,
+        155
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              },
+              {
+                "kind": "account",
+                "path": "auction.auction_id",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  108,
+                  108,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "relations": [
+            "auction"
+          ]
+        },
+        {
+          "name": "seller_token",
+          "writable": true
+        },
+        {
+          "name": "buyer_token",
+          "docs": [
+            "The winning buyer's token account; for unsold auctions any account owned by the seller is fine (nothing is paid to it)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "treasury_token",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config",
+            "auction"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_auction",
+      "docs": [
+        "Goes live only when the operator co-signs, i.e. after the agent crew approved the listing.",
+        "The seller posts a bond that is slashed if they lose a dispute or never ship."
+      ],
+      "discriminator": [
+        234,
+        6,
+        201,
+        246,
+        47,
+        219,
+        176,
+        107
+      ],
+      "accounts": [
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "operator",
+          "docs": [
+            "The orchestrator's key: proves the agent crew approved this listing."
+          ],
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seller"
+              },
+              {
+                "kind": "arg",
+                "path": "auction_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  108,
+                  108,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seller"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller_token",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "auction_id",
+          "type": "u64"
+        },
+        {
+          "name": "start_price",
+          "type": "u64"
+        },
+        {
+          "name": "min_increment",
+          "type": "u64"
+        },
+        {
+          "name": "ends_at",
+          "type": "i64"
+        },
+        {
+          "name": "listing_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "trust_score",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "deposit",
+      "docs": [
+        "Pre-fund bidding power. Like registering with a deposit at a live auction house."
+      ],
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "bidder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_tokens",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bidder_token",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_config",
+      "discriminator": [
+        208,
+        127,
+        21,
+        1,
+        194,
+        190,
+        196,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "ConfigParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "mark_delivered",
+      "docs": [
+        "Carrier-tracking oracle: the operator reports delivery, which starts the buyer's review window."
+      ],
+      "discriminator": [
+        240,
+        118,
+        188,
+        142,
+        64,
+        85,
+        107,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              },
+              {
+                "kind": "account",
+                "path": "auction.auction_id",
+                "account": "Auction"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mark_shipped",
+      "discriminator": [
+        239,
+        5,
+        66,
+        105,
+        238,
+        17,
+        89,
+        97
+      ],
+      "accounts": [
+        {
+          "name": "seller",
+          "signer": true,
+          "relations": [
+            "auction"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seller"
+              },
+              {
+                "kind": "account",
+                "path": "auction.auction_id",
+                "account": "Auction"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "tracking",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "raise_dispute",
+      "discriminator": [
+        41,
+        243,
+        1,
+        51,
+        150,
+        95,
+        246,
+        73
+      ],
+      "accounts": [
+        {
+          "name": "buyer",
+          "signer": true,
+          "relations": [
+            "auction"
+          ]
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              },
+              {
+                "kind": "account",
+                "path": "auction.auction_id",
+                "account": "Auction"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "refund_unshipped",
+      "docs": [
+        "The seller never shipped: anyone may refund the buyer once the ship window passed.",
+        "The seller's bond goes to the buyer as compensation."
+      ],
+      "discriminator": [
+        68,
+        79,
+        132,
+        124,
+        3,
+        87,
+        233,
+        201
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              },
+              {
+                "kind": "account",
+                "path": "auction.auction_id",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  108,
+                  108,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "relations": [
+            "auction"
+          ]
+        },
+        {
+          "name": "seller_token",
+          "writable": true
+        },
+        {
+          "name": "buyer_token",
+          "docs": [
+            "The winning buyer's token account; for unsold auctions any account owned by the seller is fine (nothing is paid to it)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "treasury_token",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config",
+            "auction"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "release_after_timeout",
+      "docs": [
+        "The buyer stayed silent after delivery: anyone may release once the review window passed."
+      ],
+      "discriminator": [
+        102,
+        1,
+        6,
+        82,
+        208,
+        207,
+        32,
+        7
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              },
+              {
+                "kind": "account",
+                "path": "auction.auction_id",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  108,
+                  108,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "relations": [
+            "auction"
+          ]
+        },
+        {
+          "name": "seller_token",
+          "writable": true
+        },
+        {
+          "name": "buyer_token",
+          "docs": [
+            "The winning buyer's token account; for unsold auctions any account owned by the seller is fine (nothing is paid to it)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "treasury_token",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config",
+            "auction"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "request_withdraw",
+      "docs": [
+        "Withdrawals are two-step: request now, execute after the cooldown. The auction server",
+        "subtracts pending withdrawals from bidding power, so a bid can never be backed by money",
+        "that is about to leave."
+      ],
+      "discriminator": [
+        137,
+        95,
+        187,
+        96,
+        250,
+        138,
+        31,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "bidder",
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_tokens",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "resolve_dispute",
+      "docs": [
+        "Executes a dispute outcome. The Dispute Judge Agent recommends `buyer_bps`; only the arbiter",
+        "key can execute it. Funds can only go to the buyer, the seller or the fee treasury.",
+        "If the buyer receives half or more, the seller's bond is slashed to the buyer."
+      ],
+      "discriminator": [
+        231,
+        6,
+        202,
+        6,
+        96,
+        103,
+        12,
+        230
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              },
+              {
+                "kind": "account",
+                "path": "auction.auction_id",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  108,
+                  108,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "relations": [
+            "auction"
+          ]
+        },
+        {
+          "name": "seller_token",
+          "writable": true
+        },
+        {
+          "name": "buyer_token",
+          "docs": [
+            "The winning buyer's token account; for unsold auctions any account owned by the seller is fine (nothing is paid to it)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "treasury_token",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config",
+            "auction"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "buyer_bps",
+          "type": "u16"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "set_agent",
+      "docs": [
+        "Lets a buyer's Concierge Agent bid for them with its own key, up to a hard cap that the",
+        "program enforces at settlement. The agent can never spend more than `cap` in total."
+      ],
+      "discriminator": [
+        154,
+        74,
+        121,
+        91,
+        137,
+        19,
+        101,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "bidder",
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_tokens",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "agent",
+          "type": "pubkey"
+        },
+        {
+          "name": "cap",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "settle_auction",
+      "docs": [
+        "Settles the winning bid. The previous instruction in the transaction must be an Ed25519",
+        "signature check of the bid message, signed by the bidder (or their capped agent key).",
+        "Funds move straight from the winner's Bid Vault into this auction's escrow."
+      ],
+      "discriminator": [
+        246,
+        196,
+        183,
+        98,
+        222,
+        139,
+        46,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction.seller",
+                "account": "Auction"
+              },
+              {
+                "kind": "account",
+                "path": "auction.auction_id",
+                "account": "Auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_tokens",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  115
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config",
+            "auction"
+          ]
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "bidder",
+          "type": "pubkey"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "nonce",
+          "type": "u64"
+        },
+        {
+          "name": "expiry",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "update_config",
+      "discriminator": [
+        29,
+        158,
+        252,
+        191,
+        10,
+        83,
+        219,
+        99
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "ConfigParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "withdraw",
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "bidder",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_tokens",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bidder_token",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Auction",
+      "discriminator": [
+        218,
+        94,
+        247,
+        242,
+        126,
+        233,
+        131,
+        81
+      ]
+    },
+    {
+      "name": "BidVault",
+      "discriminator": [
+        154,
+        253,
+        219,
+        232,
+        246,
+        4,
+        228,
+        229
+      ]
+    },
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "SellerProfile",
+      "discriminator": [
+        96,
+        227,
+        91,
+        129,
+        3,
+        158,
+        255,
+        21
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AuctionCreated",
+      "discriminator": [
+        133,
+        190,
+        194,
+        65,
+        172,
+        0,
+        70,
+        178
+      ]
+    },
+    {
+      "name": "AuctionReleased",
+      "discriminator": [
+        45,
+        189,
+        76,
+        8,
+        243,
+        233,
+        184,
+        2
+      ]
+    },
+    {
+      "name": "AuctionSettled",
+      "discriminator": [
+        61,
+        151,
+        131,
+        170,
+        95,
+        203,
+        219,
+        147
+      ]
+    },
+    {
+      "name": "VaultDeposited",
+      "discriminator": [
+        59,
+        62,
+        43,
+        200,
+        220,
+        104,
+        100,
+        67
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidAmount",
+      "msg": "Amount must be greater than zero and within your balance"
+    },
+    {
+      "code": 6001,
+      "name": "FeeTooHigh",
+      "msg": "Fee is above the 10% cap"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidSplit",
+      "msg": "Invalid split"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidWindow",
+      "msg": "Invalid time window"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidEndTime",
+      "msg": "End time must be in the future"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidTrustScore",
+      "msg": "Trust score must be 0-100"
+    },
+    {
+      "code": 6006,
+      "name": "Unauthorized",
+      "msg": "Not allowed"
+    },
+    {
+      "code": 6007,
+      "name": "WrongStatus",
+      "msg": "The auction is not in the right state for this"
+    },
+    {
+      "code": 6008,
+      "name": "AuctionNotEnded",
+      "msg": "The auction hasn't ended yet"
+    },
+    {
+      "code": 6009,
+      "name": "BidTooLow",
+      "msg": "Bid is below the starting price"
+    },
+    {
+      "code": 6010,
+      "name": "BidExpired",
+      "msg": "This signed bid has expired"
+    },
+    {
+      "code": 6011,
+      "name": "MissingSignatureCheck",
+      "msg": "Missing the Ed25519 signature check for the bid"
+    },
+    {
+      "code": 6012,
+      "name": "BadSignature",
+      "msg": "The bid signature doesn't match"
+    },
+    {
+      "code": 6013,
+      "name": "AgentCapExceeded",
+      "msg": "The Concierge Agent would exceed its spending cap"
+    },
+    {
+      "code": 6014,
+      "name": "InsufficientVault",
+      "msg": "Not enough available funds in the Bid Vault"
+    },
+    {
+      "code": 6015,
+      "name": "NoPendingWithdrawal",
+      "msg": "No withdrawal was requested"
+    },
+    {
+      "code": 6016,
+      "name": "CooldownActive",
+      "msg": "Withdrawal cooldown has not passed yet"
+    },
+    {
+      "code": 6017,
+      "name": "ShipWindowClosed",
+      "msg": "The shipping window has closed"
+    },
+    {
+      "code": 6018,
+      "name": "WindowNotPassed",
+      "msg": "The waiting period hasn't passed yet"
+    },
+    {
+      "code": 6019,
+      "name": "NoteTooLong",
+      "msg": "Text is empty or too long"
+    },
+    {
+      "code": 6020,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "Auction",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "seller",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "auction_id",
+            "type": "u64"
+          },
+          {
+            "name": "start_price",
+            "type": "u64"
+          },
+          {
+            "name": "min_increment",
+            "type": "u64"
+          },
+          {
+            "name": "bond",
+            "type": "u64"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "settled_at",
+            "type": "i64"
+          },
+          {
+            "name": "shipped_at",
+            "type": "i64"
+          },
+          {
+            "name": "delivered_at",
+            "type": "i64"
+          },
+          {
+            "name": "disputed_at",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "AuctionStatus"
+              }
+            }
+          },
+          {
+            "name": "buyer_bps",
+            "type": "u16"
+          },
+          {
+            "name": "listing_hash",
+            "docs": [
+              "SHA-256 of the approved listing (title, description, photos), tying the auction to what the agents checked."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "trust_score",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "escrow_bump",
+            "type": "u8"
+          },
+          {
+            "name": "tracking",
+            "type": "string"
+          },
+          {
+            "name": "dispute_reason",
+            "type": "string"
+          },
+          {
+            "name": "resolution_note",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuctionCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "type": "pubkey"
+          },
+          {
+            "name": "seller",
+            "type": "pubkey"
+          },
+          {
+            "name": "start_price",
+            "type": "u64"
+          },
+          {
+            "name": "ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "trust_score",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuctionReleased",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "type": "pubkey"
+          },
+          {
+            "name": "seller",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuctionSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "by_agent",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuctionStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Live"
+          },
+          {
+            "name": "Funded"
+          },
+          {
+            "name": "Shipped"
+          },
+          {
+            "name": "Delivered"
+          },
+          {
+            "name": "Disputed"
+          },
+          {
+            "name": "Released"
+          },
+          {
+            "name": "Refunded"
+          },
+          {
+            "name": "Resolved"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BidVault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bidder",
+            "type": "pubkey"
+          },
+          {
+            "name": "pending_withdrawal",
+            "type": "u64"
+          },
+          {
+            "name": "withdraw_requested_at",
+            "type": "i64"
+          },
+          {
+            "name": "agent",
+            "docs": [
+              "Optional Concierge Agent key allowed to sign bids for this vault, up to `agent_cap`."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_cap",
+            "type": "u64"
+          },
+          {
+            "name": "agent_spent",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "tokens_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "operator",
+            "docs": [
+              "Auction server / agent orchestrator: approves listings, settles winning bids, reports delivery."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "arbiter",
+            "docs": [
+              "Executes dispute outcomes recommended by the Dispute Judge Agent (a multisig in production)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "bond_bps",
+            "type": "u16"
+          },
+          {
+            "name": "min_bond",
+            "type": "u64"
+          },
+          {
+            "name": "ship_window_secs",
+            "type": "i64"
+          },
+          {
+            "name": "release_window_secs",
+            "type": "i64"
+          },
+          {
+            "name": "withdraw_cooldown_secs",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ConfigParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "operator",
+            "type": "pubkey"
+          },
+          {
+            "name": "arbiter",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "bond_bps",
+            "type": "u16"
+          },
+          {
+            "name": "min_bond",
+            "type": "u64"
+          },
+          {
+            "name": "ship_window_secs",
+            "type": "i64"
+          },
+          {
+            "name": "release_window_secs",
+            "type": "i64"
+          },
+          {
+            "name": "withdraw_cooldown_secs",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SellerProfile",
+      "docs": [
+        "Portable on-chain seller reputation."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "seller",
+            "type": "pubkey"
+          },
+          {
+            "name": "auctions_created",
+            "type": "u64"
+          },
+          {
+            "name": "sales_completed",
+            "type": "u64"
+          },
+          {
+            "name": "failed_shipments",
+            "type": "u64"
+          },
+          {
+            "name": "disputes_won",
+            "type": "u64"
+          },
+          {
+            "name": "disputes_lost",
+            "type": "u64"
+          },
+          {
+            "name": "volume",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultDeposited",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bidder",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}

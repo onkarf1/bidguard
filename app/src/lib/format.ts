@@ -1,37 +1,19 @@
 import { BN } from "@coral-xyz/anchor";
 import { USDC_DECIMALS } from "./config";
 
-export function toBaseUnits(amount: string): BN {
-  const [whole, frac = ""] = amount.trim().split(".");
-  if (!/^\d+$/.test(whole || "0") || !/^\d*$/.test(frac)) throw new Error("Invalid amount");
-  const padded = (frac + "0".repeat(USDC_DECIMALS)).slice(0, USDC_DECIMALS);
-  return new BN((whole || "0") + padded);
-}
+const UNIT = 10 ** USDC_DECIMALS;
 
-export function fromBaseUnits(amount: BN | number | bigint): string {
-  const s = amount.toString().padStart(USDC_DECIMALS + 1, "0");
-  const whole = s.slice(0, -USDC_DECIMALS);
-  const frac = s.slice(-USDC_DECIMALS).replace(/0+$/, "");
-  return frac ? `${whole}.${frac}` : whole;
-}
+export const toBaseUnits = (usdc: number) => Math.round(usdc * UNIT);
+export const fromBaseUnits = (v: number | BN | bigint) => Number(typeof v === "object" && "toNumber" in v ? v.toNumber() : v) / UNIT;
+export const usd = (baseUnits: number | BN | bigint) =>
+  fromBaseUnits(baseUnits).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+export const short = (addr: string, n = 4) => (addr.length > 2 * n + 1 ? `${addr.slice(0, n)}…${addr.slice(-n)}` : addr);
 
-export const shortKey = (k: { toBase58(): string } | string) => {
-  const s = typeof k === "string" ? k : k.toBase58();
-  return `${s.slice(0, 4)}…${s.slice(-4)}`;
-};
-
-export function formatDate(unixSecs: number) {
-  return new Date(unixSecs * 1000).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
-
-export function timeLeft(unixSecs: number) {
-  const diff = unixSecs - Date.now() / 1000;
-  if (diff <= 0) return "passed";
-  const d = Math.floor(diff / 86400);
-  const h = Math.floor((diff % 86400) / 3600);
-  const m = Math.floor((diff % 3600) / 60);
-  return d > 0 ? `${d}d ${h}h left` : h > 0 ? `${h}h ${m}m left` : `${m}m left`;
+export function timeLeft(ms: number) {
+  if (ms <= 0) return "Ended";
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}:${String(sec).padStart(2, "0")}`;
 }

@@ -8,7 +8,7 @@ import {
 } from "@solana/spl-token";
 import { CLUSTER, USDC_DECIMALS, USDC_MINT } from "@/lib/config";
 import { ata } from "@/lib/program";
-import { arbiterKeypair, serverConnection } from "@/lib/server";
+import { operatorKeypair, serverConnection } from "@/lib/server";
 
 export const runtime = "nodejs";
 const DRIP = 100; // USDC per request
@@ -23,9 +23,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Body must be { wallet: <address> }" }, { status: 400 });
   }
 
-  const authority = arbiterKeypair(); // setup script makes the arbiter the test-mint authority
+  const authority = operatorKeypair(); // `yarn setup` makes the operator the test-mint authority
   const connection = serverConnection();
-  const dest = ata(USDC_MINT, owner);
+  const dest = ata(owner);
 
   try {
     const acct = await getAccount(connection, dest);
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error("faucet failed", e);
     return NextResponse.json(
-      { error: "Faucet failed. Is NEXT_PUBLIC_USDC_MINT the test mint created by setup:devnet?" },
+      { error: "Faucet failed. Is NEXT_PUBLIC_USDC_MINT the test mint created by `yarn setup`?" },
       { status: 500 }
     );
   }

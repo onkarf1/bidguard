@@ -16,7 +16,7 @@
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-brand text-slate-950 hover:bg-teal-400;
+    @apply btn bg-brand text-slate-950 hover:bg-amber-300;
   }
   .btn-secondary {
     @apply btn border border-slate-700 text-slate-200 hover:border-slate-500 hover:bg-slate-800;
@@ -27,9 +27,14 @@
 }
 
 .wallet-adapter-button-trigger {
-  background-color: #14b8a6 !important;
+  background-color: #fbbf24 !important;
   color: #020617 !important;
   height: 40px !important;
   border-radius: 0.5rem !important;
   font-size: 0.875rem !important;
 }
+
+.trust-ring { background: conic-gradient(var(--c) calc(var(--v) * 1%), rgb(30 41 59) 0); }
+@keyframes flash { 0% { background-color: rgb(251 191 36 / .35); } 100% { background-color: transparent; } }
+.flash { animation: flash 1.2s ease-out; }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } }
