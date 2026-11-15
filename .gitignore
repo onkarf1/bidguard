@@ -1,0 +1,15 @@
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
+.env
+.env.local
+app/.next
+.keys
+**/.DS_Store
+*.log
+app/.vercel
+app/tsconfig.tsbuildinfo
