@@ -9,7 +9,14 @@ import { CLUSTER } from "./config";
 const g = globalThis as unknown as { __bgMongo?: Promise<Db> };
 
 export function db(): Promise<Db> {
-  if (!g.__bgMongo) g.__bgMongo = connect();
+  if (!g.__bgMongo) {
+    // Don't cache a failed connection: the next request retries.
+    g.__bgMongo = connect().catch((e) => {
+      g.__bgMongo = undefined;
+      console.error("MongoDB connection failed:", e?.name, String(e?.message ?? "").replace(/mongodb(\+srv)?:\/\/\S+/g, "<uri>").slice(0, 300));
+      throw e;
+    });
+  }
   return g.__bgMongo;
 }
 
